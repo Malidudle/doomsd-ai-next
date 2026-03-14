@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
@@ -170,7 +170,11 @@ function POIPopupContent({ poi, cfg, distStr, onRoute }: {
 
 function HighlightHandler({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
+  const doneRef = useRef<string>('');
   useEffect(() => {
+    const key = `${lat},${lng}`;
+    if (doneRef.current === key) return;
+    doneRef.current = key;
     map.eachLayer((layer: L.Layer) => {
       if (layer instanceof L.Marker) {
         const pos = layer.getLatLng();

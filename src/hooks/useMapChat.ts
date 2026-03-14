@@ -39,11 +39,19 @@ export function useMapChat({
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sentAtRef = useRef<number>(0);
 
-  // Build location context for the AI
-  const locationContext = useMemo(() => {
-    if (!effectiveStart || pois.length === 0) return '';
-    const [lat, lng] = effectiveStart;
-    const withDist = pois.map((p) => {
+  // Build location context for the AI — stored in ref to avoid transport recreation
+  const locationContextRef = useRef('');
+  const poisRef = useRef(pois);
+  const effectiveStartRef = useRef(effectiveStart);
+  poisRef.current = pois;
+  effectiveStartRef.current = effectiveStart;
+
+  const buildLocationContext = useCallback(() => {
+    const start = effectiveStartRef.current;
+    const currentPois = poisRef.current;
+    if (!start || currentPois.length === 0) return '';
+    const [lat, lng] = start;
+    const withDist = currentPois.map((p) => {
       const R = 6371;
       const dLat = ((p.lat - lat) * Math.PI) / 180;
       const dLng = ((p.lng - lng) * Math.PI) / 180;
@@ -56,11 +64,15 @@ export function useMapChat({
       return { ...p, distance };
     }).filter((p) => p.distance <= 10).sort((a, b) => a.distance - b.distance);
     return formatPOIContext(lat, lng, withDist);
-  }, [effectiveStart, pois]);
+  }, []);
 
+  // Stable transport — locationContext injected at send time, not at creation
   const transport = useMemo(
-    () => new DefaultChatTransport({ api: '/api/map-chat', body: { locationContext } }),
-    [locationContext],
+    () => new DefaultChatTransport({
+      api: '/api/map-chat',
+      body: { get locationContext() { return locationContextRef.current; } },
+    }),
+    [],
   );
 
   const showToast = useCallback((text: string, status: ToastState['status'] = 'done') => {
@@ -76,7 +88,7 @@ export function useMapChat({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleToolCall = useCallback(
     async ({ toolCall }: { toolCall: any }) => {
-      const [lat, lng] = effectiveStart || [0, 0];
+      const [lat, lng] = effectiveStartRef.current || [0, 0];
       const args = (toolCall.input ?? toolCall.args ?? {}) as Record<string, unknown>;
 
       const toolLabel = toolCall.toolName.replace(/_/g, ' ').toUpperCase();
@@ -87,7 +99,7 @@ export function useMapChat({
         case 'route_to': {
           const poi = resolvePOI(
             { category: args.category as string, name: args.name as string },
-            lat, lng, pois,
+            lat, lng, poisRef.current,
           );
           if (poi) {
             onRouteTo(poi.lat, poi.lng);
@@ -109,7 +121,7 @@ export function useMapChat({
           }
           const poi = resolvePOI(
             { category: args.category as string, name: args.name as string },
-            lat, lng, pois,
+            lat, lng, poisRef.current,
           );
           if (poi) {
             onZoomTo(poi.lat, poi.lng);
@@ -132,7 +144,7 @@ export function useMapChat({
           // Legacy: remap to route_to
           const poi = resolvePOI(
             { category: args.category as string, name: args.name as string },
-            lat, lng, pois,
+            lat, lng, poisRef.current,
           );
           if (poi) {
             onRouteTo(poi.lat, poi.lng);
@@ -155,7 +167,7 @@ export function useMapChat({
           return 'Unknown tool';
       }
     },
-    [effectiveStart, pois, onRouteTo, onZoomTo, onToggleCategories, onHighlightPOI, onDownloadArea, showToast],
+    [onRouteTo, onZoomTo, onToggleCategories, onHighlightPOI, onDownloadArea, showToast],
   );
 
   const toolCalledRef = useRef(false);
@@ -196,7 +208,7 @@ export function useMapChat({
   // Fallback: parse user text directly when the model fails to call a tool
   const fallbackIntent = useCallback((input: string) => {
     const lower = input.toLowerCase();
-    const [lat, lng] = effectiveStart || [0, 0];
+    const [lat, lng] = effectiveStartRef.current || [0, 0];
 
     // Category keyword mapping
     const KEYWORD_TO_CATEGORY: Record<string, string> = {
@@ -244,7 +256,7 @@ export function useMapChat({
       showToast(`Showing ${matchedCategory.replace(/_/g, ' ')} only`, 'done');
     } else if (isRoute || true) {
       // Default: route to it (most common intent)
-      const poi = resolvePOI({ category: matchedCategory }, lat, lng, pois);
+      const poi = resolvePOI({ category: matchedCategory }, lat, lng, poisRef.current);
       if (poi) {
         console.log(`[map-chat] fallback: route_to ${poi.name || matchedCategory}`);
         onRouteTo(poi.lat, poi.lng);
@@ -254,7 +266,7 @@ export function useMapChat({
         showToast(`No ${matchedCategory.replace(/_/g, ' ')} found nearby — download the area first`, 'error');
       }
     }
-  }, [effectiveStart, pois, onRouteTo, onToggleCategories, onDownloadArea, showToast]);
+  }, [onRouteTo, onToggleCategories, onDownloadArea, showToast]);
 
   // Show streaming text as it arrives — update toast in real-time
   const lastAssistantMsg = messages.filter((m) => m.role === 'assistant').at(-1);
@@ -283,6 +295,8 @@ export function useMapChat({
   const sendCommand = useCallback(
     (text: string) => {
       if (!text.trim()) return;
+      // Build fresh location context at send time
+      locationContextRef.current = buildLocationContext();
       console.log(`[map-chat] sending: "${text}"`);
       sentAtRef.current = Date.now();
       lastTextRef.current = '';
@@ -290,7 +304,7 @@ export function useMapChat({
       lastUserInputRef.current = text;
       sendMessage({ text });
     },
-    [sendMessage],
+    [sendMessage, buildLocationContext],
   );
 
   return { toast, sendCommand, isProcessing };

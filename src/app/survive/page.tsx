@@ -2,7 +2,8 @@
 
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import SourcesPanel, { type Source } from '@/components/SourcesPanel';
 
 const SCOPE_TABS = ['CHAT INPUT', 'TRANSCRIPT', 'RETRIEVAL', 'ARTICLE VIEWER'];
@@ -46,13 +47,15 @@ function Timestamp({ date }: { date: Date }) {
   );
 }
 
-export default function SurvivePage() {
+function SurvivePageInner() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('TRANSCRIPT');
   const [sources, setSources] = useState<Source[]>([]);
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const autoSentRef = useRef(false);
 
   const transport = useMemo(
     () => new DefaultChatTransport({ api: '/api/chat', body: { model: 'qwen3.5:4b' } }),
@@ -71,6 +74,15 @@ export default function SurvivePage() {
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // Auto-send query from URL params (e.g. from SOS dashboard)
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q && !autoSentRef.current && messages.length === 0) {
+      autoSentRef.current = true;
+      sendMessage({ text: q });
+    }
+  }, [searchParams, messages.length, sendMessage]);
 
   // Populate mock sources after first AI response
   useEffect(() => {
@@ -262,5 +274,13 @@ export default function SurvivePage() {
         onClose={() => setSelectedSourceId(null)}
       />
     </div>
+  );
+}
+
+export default function SurvivePage() {
+  return (
+    <Suspense>
+      <SurvivePageInner />
+    </Suspense>
   );
 }

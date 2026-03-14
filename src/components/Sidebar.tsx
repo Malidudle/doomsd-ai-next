@@ -7,7 +7,6 @@ import { useMesh } from '@/hooks/useMesh';
 
 const NAV_ITEMS = [
   { href: '/', label: 'SOS', icon: '!' },
-  { href: '/chat', label: 'CHAT', icon: '>' },
   { href: '/survive', label: 'SURVIVECHAT', icon: '#' },
   { href: '/map', label: 'NEARBY', icon: '@' },
   { href: '/mesh', label: 'MESH', icon: '~' },

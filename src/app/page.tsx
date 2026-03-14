@@ -13,16 +13,18 @@ const CRISIS_TYPES = [
 ];
 
 const ACTION_CARDS = [
-  { label: 'AM I SAFE HERE?', icon: '  ?  ', href: '/chat?q=Am+I+safe+here' },
-  { label: 'FIRST AID', icon: ' +♥+ ', href: '/chat?q=First+aid+guide' },
-  { label: 'FIND WATER', icon: ' ≈▲≈ ', href: '/chat?q=Find+water+nearby' },
-  { label: 'SIGNAL HELP', icon: ' )))  ', href: '/chat?q=How+to+signal+help' },
-  { label: 'BUILD SHELTER', icon: ' /▲\\ ', href: '/chat?q=Build+emergency+shelter' },
-  { label: 'BROADCAST SOS', icon: '[SOS]', href: '/chat?q=Broadcast+SOS+signal' },
+  { label: 'AM I SAFE HERE?', icon: '  ?  ', prompt: (crisis: string) => `I'm in a ${crisis} situation. Am I safe here? What should I check for immediate danger?` },
+  { label: 'FIRST AID', icon: ' +♥+ ', prompt: (crisis: string) => `I need first aid guidance for a ${crisis} scenario. What are the most critical steps?` },
+  { label: 'FIND WATER', icon: ' ≈▲≈ ', prompt: (crisis: string) => `How do I find and purify safe drinking water during a ${crisis}?` },
+  { label: 'SIGNAL HELP', icon: ' )))  ', prompt: (crisis: string) => `How do I signal for help and make myself visible to rescuers during a ${crisis}?` },
+  { label: 'BUILD SHELTER', icon: ' /▲\\ ', prompt: (crisis: string) => `How do I build an emergency shelter during a ${crisis}? What materials should I look for?` },
+  { label: 'BROADCAST SOS', icon: '[SOS]', prompt: (crisis: string) => `How do I broadcast an SOS signal during a ${crisis}? What methods work without cell service?` },
 ];
 
 export default function SOSDashboard() {
   const [activeCrisis, setActiveCrisis] = useState('earthquake');
+
+  const crisisLabel = CRISIS_TYPES.find(c => c.id === activeCrisis)?.label || activeCrisis;
 
   return (
     <div className="flex flex-col h-full p-4 md:p-6 crt-glow">
@@ -63,7 +65,7 @@ export default function SOSDashboard() {
           {ACTION_CARDS.map((card) => (
             <Link
               key={card.label}
-              href={card.href}
+              href={`/survive?q=${encodeURIComponent(card.prompt(crisisLabel))}`}
               className="border border-border-green bg-bg-card hover:bg-bg-card-hover hover:border-green transition-all p-4 md:p-6 flex flex-col items-center justify-center gap-3 group"
             >
               <pre className="text-green text-lg md:text-xl font-bold group-hover:drop-shadow-[0_0_8px_rgba(0,255,65,0.4)] transition-all">

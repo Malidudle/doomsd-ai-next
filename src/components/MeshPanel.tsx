@@ -99,7 +99,7 @@ export default function MeshPanel() {
       <div className="px-4 py-3 border-b border-border">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div>
-            <h2 className="text-green text-[12px] font-bold">SURVIVECHAT LOCAL MESH</h2>
+            <h2 className="text-green text-[12px] font-bold">BITCHAT LOCAL MESH</h2>
             <div className="flex items-center gap-2 mt-0.5">
               <span className={`w-1.5 h-1.5 rounded-full ${bridgeOffline ? 'bg-red' : 'bg-green'}`} />
               <span className="text-[10px] text-muted">
@@ -160,7 +160,7 @@ export default function MeshPanel() {
         <div className="flex-1 flex items-center justify-center px-4 py-8">
           <div className="text-center">
             <div className="text-red text-[12px] font-bold mb-1">BRIDGE UNAVAILABLE</div>
-            <div className="text-muted text-[10px]">Waiting for SurviveChat bridge connection...</div>
+            <div className="text-muted text-[10px]">Waiting for BitChat bridge connection...</div>
             <div className="text-muted text-[10px] mt-1">Polling every 2s</div>
           </div>
         </div>

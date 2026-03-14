@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: '/chat', label: 'CHAT', icon: '>' },
   { href: '/survive', label: 'SURVIVECHAT', icon: '#' },
   { href: '/map', label: 'NEARBY', icon: '@' },
+  { href: '/mesh', label: 'MESH', icon: '~' },
 ];
 
 export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => void }) {

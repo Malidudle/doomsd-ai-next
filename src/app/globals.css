@@ -1,26 +1,100 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #c8c8c8;
+  --green: #33cc33;
+  --green-dim: #1a8a1a;
+  --green-bright: #44ff44;
+  --amber: #ccaa33;
+  --red: #cc3333;
+  --blue: #3388cc;
+  --border: #222222;
+  --surface: #111111;
+  --muted: #555555;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-green: var(--green);
+  --color-green-dim: var(--green-dim);
+  --color-green-bright: var(--green-bright);
+  --color-amber: var(--amber);
+  --color-red: var(--red);
+  --color-blue: var(--blue);
+  --color-border: var(--border);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --font-sans: var(--font-ibm-plex-mono);
+  --font-mono: var(--font-space-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--green-dim) var(--background);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+::selection {
+  background: var(--green);
+  color: var(--background);
+}
+
+/* scanline overlay */
+.scanlines::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* subtle CRT glow */
+.crt-glow {
+  text-shadow: 0 0 2px rgba(51, 204, 51, 0.15);
+}
+
+/* blinking cursor */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* fade in for messages */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.msg-enter {
+  animation: fadeIn 0.15s ease-out;
+}
+
+/* input caret color */
+input, textarea {
+  caret-color: var(--green);
+}
+
+/* horizontal rule styling */
+hr {
+  border: none;
+  border-top: 1px dashed var(--border);
 }

@@ -8,7 +8,7 @@ import { useMesh } from '@/hooks/useMesh';
 const NAV_ITEMS = [
   { href: '/', label: 'SOS', icon: '!' },
   { href: '/chat', label: 'CHAT', icon: '>' },
-  { href: '/survive', label: 'SURVIVE', icon: '#' },
+  { href: '/survive', label: 'SURVIVECHAT', icon: '#' },
   { href: '/map', label: 'NEARBY', icon: '@' },
 ];
 
@@ -24,7 +24,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
       {/* Logo */}
       <Link href="/" className="px-5 mb-6 flex items-center gap-2" onClick={onClose}>
         <span className="text-green text-xl font-bold crt-glow">~</span>
-        <span className="text-green font-bold text-sm tracking-wider crt-glow">DoomsAI</span>
+        <span className="text-green font-bold text-sm tracking-wider crt-glow">DoomsdAI</span>
       </Link>
 
       {/* Nav items */}

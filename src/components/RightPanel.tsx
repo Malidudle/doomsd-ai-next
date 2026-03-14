@@ -99,9 +99,9 @@ export default function RightPanel() {
         )}
       </div>
 
-      {/* BitChat Summary — live data */}
+      {/* SurviveChat Summary — live data */}
       <div className="p-4">
-        <h3 className="text-[10px] text-muted mb-2 tracking-wider">BITCHAT SUMMARY</h3>
+        <h3 className="text-[10px] text-muted mb-2 tracking-wider">SURVIVECHAT SUMMARY</h3>
         {bridgeOnline ? (
           <div className="text-[10px] text-text-secondary flex flex-col gap-1">
             <div>{peers.length} nearby devices</div>

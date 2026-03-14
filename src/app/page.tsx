@@ -81,7 +81,7 @@ export default function SOSDashboard() {
       <div className="mt-6 pt-3 border-t border-border flex items-center gap-4 text-[10px] text-muted">
         <span>MODE: <span className="text-green">{activeCrisis.toUpperCase()}</span></span>
         <span>STATUS: <span className="text-green">ACTIVE</span></span>
-        <span className="ml-auto">DoomsAI v0.1.0</span>
+        <span className="ml-auto">DoomsdAI v0.1.0</span>
       </div>
     </div>
   );

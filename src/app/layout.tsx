@@ -10,7 +10,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DoomsAI",
+  title: "DoomsdAI",
   description: "Emergency preparedness terminal",
 };
 

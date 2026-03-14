@@ -15,8 +15,8 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  // Map page doesn't show right panel (has its own overlay controls)
-  const showRightPanel = pathname !== '/map';
+  // Map and Survive pages have their own right panels
+  const showRightPanel = pathname !== '/map' && pathname !== '/survive';
 
   return (
     <div className="scanlines flex h-screen overflow-hidden">
@@ -32,7 +32,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
           >
             ☰
           </button>
-          <span className="text-green text-xs font-bold crt-glow tracking-wider">DoomsAI</span>
+          <span className="text-green text-xs font-bold crt-glow tracking-wider">DoomsdAI</span>
         </div>
 
         <div className="flex flex-1 overflow-hidden">

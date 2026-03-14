@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import RightPanel from './RightPanel';
+import { MeshProvider } from '@/hooks/useMesh';
 
-export default function AppShell({ children }: { children: React.ReactNode }) {
+function AppShellInner({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
 
@@ -42,5 +43,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <MeshProvider>
+      <AppShellInner>{children}</AppShellInner>
+    </MeshProvider>
   );
 }

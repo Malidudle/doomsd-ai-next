@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import L from 'leaflet';
-import { Marker, Popup, useMapEvents } from 'react-leaflet';
+import { Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { CATEGORIES, SHELTER_DETAIL_KEYS, type POI, type POICategory } from '@/lib/poi/categories';
 
@@ -72,6 +72,7 @@ interface Props {
   userPosition: [number, number] | null;
   onBoundsChange: (bounds: L.LatLngBounds) => void;
   onRoute?: (lat: number, lng: number) => void;
+  highlightedPOI?: { lat: number; lng: number } | null;
 }
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -167,7 +168,23 @@ function POIPopupContent({ poi, cfg, distStr, onRoute }: {
   );
 }
 
-export default function POIMarkers({ pois, enabledCategories, userPosition, onBoundsChange, onRoute }: Props) {
+function HighlightHandler({ lat, lng }: { lat: number; lng: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.eachLayer((layer: L.Layer) => {
+      if (layer instanceof L.Marker) {
+        const pos = layer.getLatLng();
+        if (Math.abs(pos.lat - lat) < 0.0001 && Math.abs(pos.lng - lng) < 0.0001) {
+          map.flyTo([lat, lng], Math.max(map.getZoom(), 16), { duration: 1 });
+          setTimeout(() => layer.openPopup(), 1100);
+        }
+      }
+    });
+  }, [map, lat, lng]);
+  return null;
+}
+
+export default function POIMarkers({ pois, enabledCategories, userPosition, onBoundsChange, onRoute, highlightedPOI }: Props) {
   const filtered = useMemo(
     () => pois.filter((p) => enabledCategories.has(p.category)),
     [pois, enabledCategories],
@@ -176,6 +193,7 @@ export default function POIMarkers({ pois, enabledCategories, userPosition, onBo
   return (
     <>
       <BoundsTracker onBoundsChange={onBoundsChange} />
+      {highlightedPOI && <HighlightHandler lat={highlightedPOI.lat} lng={highlightedPOI.lng} />}
       <MarkerClusterGroup
         iconCreateFunction={clusterIcon}
         disableClusteringAtZoom={16}

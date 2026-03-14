@@ -43,13 +43,13 @@ export default function ChatPage() {
 
 function ChatInner() {
   const searchParams = useSearchParams();
-  const [input, setInput] = useState('');
+  const initialQuery = searchParams.get('q') || '';
+  const [input, setInput] = useState(initialQuery);
   const [model, setModel] = useState('qwen3.5:4b');
   const [showModelPicker, setShowModelPicker] = useState(false);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
   const [locationContext, setLocationContext] = useState('');
   const [poiCount, setPoiCount] = useState(0);
-  const [initialSent, setInitialSent] = useState(false);
 
   // Geolocation
   useEffect(() => {
@@ -92,15 +92,6 @@ function ChatInner() {
     inputRef.current?.focus();
   }, []);
 
-  // Handle initial query from URL params
-  useEffect(() => {
-    if (initialSent) return;
-    const q = searchParams.get('q');
-    if (q && status === 'ready') {
-      setInitialSent(true);
-      sendMessage({ text: q });
-    }
-  }, [searchParams, status, initialSent, sendMessage]);
 
   const isStreaming = status !== 'ready';
 

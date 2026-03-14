@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { useMesh } from '@/hooks/useMesh';
 
 const NAV_ITEMS = [
   { href: '/', label: 'SOS', icon: '!' },
@@ -14,6 +15,9 @@ const NAV_ITEMS = [
 export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
   const { isOnline } = useOnlineStatus();
+  const { status: meshStatus, peers, bluetoothState } = useMesh();
+  const bridgeOnline = meshStatus === 'online';
+  const btHealthy = bluetoothState === 'poweredOn';
 
   const sidebarContent = (
     <div className="flex h-full w-[220px] flex-col border-r border-border bg-background py-4">
@@ -74,9 +78,14 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
           </span>
           <span>{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
         </div>
-        <div>BAT: 87%</div>
+        <div className="flex items-center gap-2">
+          <span className={bridgeOnline ? 'text-green' : 'text-red'}>
+            {bridgeOnline ? '●' : '○'}
+          </span>
+          <span>{bridgeOnline ? 'MESH' : 'NO MESH'}</span>
+        </div>
+        <div>BT: {btHealthy ? `ON · ${peers.length} devices` : bluetoothState ?? '—'}</div>
         <div>GPS: ACTIVE</div>
-        <div>BT: 3 devices</div>
       </div>
     </div>
   );

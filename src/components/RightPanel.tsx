@@ -1,6 +1,7 @@
 'use client';
 
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { useMesh } from '@/hooks/useMesh';
 
 function ProgressBar({ value, max, color = 'var(--green)' }: { value: number; max: number; color?: string }) {
   const pct = Math.min((value / max) * 100, 100);
@@ -13,6 +14,8 @@ function ProgressBar({ value, max, color = 'var(--green)' }: { value: number; ma
 
 export default function RightPanel() {
   const { isOnline } = useOnlineStatus();
+  const { status: meshStatus, peers, connectedPeers, messages, bluetoothState } = useMesh();
+  const bridgeOnline = meshStatus === 'online';
 
   return (
     <div className="hidden lg:flex w-[320px] shrink-0 flex-col border-l border-border bg-background overflow-y-auto">
@@ -71,27 +74,43 @@ export default function RightPanel() {
       {/* Connectivity */}
       <div className="p-4 border-b border-border">
         <h3 className="text-[10px] text-muted mb-2 tracking-wider">CONNECTIVITY</h3>
-        <div className="flex items-center gap-2 text-[11px]">
-          <span className={isOnline ? 'text-green' : 'text-red'}>
-            {isOnline ? '●' : '○'}
-          </span>
-          <span className={isOnline ? 'text-green' : 'text-red'}>
-            {isOnline ? 'CONNECTED' : 'OFFLINE'}
-          </span>
+        <div className="flex flex-col gap-1.5 text-[11px]">
+          <div className="flex items-center gap-2">
+            <span className={isOnline ? 'text-green' : 'text-red'}>●</span>
+            <span className={isOnline ? 'text-green' : 'text-red'}>
+              {isOnline ? 'INTERNET' : 'OFFLINE'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={bridgeOnline ? 'text-green' : 'text-red'}>●</span>
+            <span className={bridgeOnline ? 'text-green' : 'text-red'}>
+              {bridgeOnline ? 'MESH BRIDGE' : 'BRIDGE DOWN'}
+            </span>
+          </div>
+          {bluetoothState && (
+            <div className="flex items-center gap-2">
+              <span className={bluetoothState === 'poweredOn' ? 'text-green' : 'text-text-amber'}>●</span>
+              <span className="text-text-secondary">BT: {bluetoothState}</span>
+            </div>
+          )}
         </div>
         {!isOnline && (
           <p className="text-[10px] text-muted mt-1">Using cached data. Some features unavailable.</p>
         )}
       </div>
 
-      {/* BitChat Summary */}
+      {/* BitChat Summary — live data */}
       <div className="p-4">
         <h3 className="text-[10px] text-muted mb-2 tracking-wider">BITCHAT SUMMARY</h3>
-        <div className="text-[10px] text-text-secondary flex flex-col gap-1">
-          <div>12 nearby devices</div>
-          <div>3 active groups</div>
-          <div className="text-text-amber">1 SOS alert active</div>
-        </div>
+        {bridgeOnline ? (
+          <div className="text-[10px] text-text-secondary flex flex-col gap-1">
+            <div>{peers.length} nearby devices</div>
+            <div>{connectedPeers} connected peers</div>
+            <div>{messages.length} recent messages</div>
+          </div>
+        ) : (
+          <div className="text-[10px] text-muted italic">Bridge unavailable</div>
+        )}
       </div>
     </div>
   );

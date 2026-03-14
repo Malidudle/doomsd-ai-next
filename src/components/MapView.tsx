@@ -15,6 +15,9 @@ import { useRoute } from "@/hooks/useRoute";
 import { CATEGORIES, type POICategory } from "@/lib/poi/categories";
 import POIMarkers from "./POIMarkers";
 import RouteLayer from "./RouteLayer";
+import MapCommandBar from "./MapCommandBar";
+import { useMapChat } from "@/hooks/useMapChat";
+import { saveLastLocation, getLastLocation } from "@/lib/locationStore";
 import { fetchRoads } from "@/lib/roads/overpassRoads";
 import { buildGraph } from "@/lib/roads/graphBuilder";
 import { saveGraph, saveRoadRegion, getRoadStats } from "@/lib/roads/roadStore";
@@ -76,6 +79,14 @@ function StartLocationPicker({ active, onPick }: { active: boolean; onPick: (lat
 
 export default function MapView() {
   const { isOnline } = useOnlineStatus();
+  const [initialCenter] = useState<[number, number]>(() => {
+    const last = getLastLocation();
+    return last ? [last.lat, last.lng] : DEFAULT_CENTER;
+  });
+  const [initialZoom] = useState(() => {
+    const last = getLastLocation();
+    return last ? last.zoom : DEFAULT_ZOOM;
+  });
   const [position, setPosition] = useState<[number, number] | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [cachedCount, setCachedCount] = useState(0);
@@ -91,6 +102,7 @@ export default function MapView() {
   const [routeStart, setRouteStart] = useState<[number, number] | null>(null);
   const [pickingStart, setPickingStart] = useState(false);
   const [roadRegionCount, setRoadRegionCount] = useState(0);
+  const [highlightedPOI, setHighlightedPOI] = useState<{ lat: number; lng: number } | null>(null);
 
   // routeStart defaults to GPS position
   const effectiveStart = routeStart || position;
@@ -112,11 +124,20 @@ export default function MapView() {
     }
   }, []);
 
-  // Geolocation
+  // Geolocation with last-known-location fallback
   useEffect(() => {
+    const lastLoc = getLastLocation();
+    if (lastLoc) {
+      setPosition([lastLoc.lat, lastLoc.lng]);
+      setZoom(lastLoc.zoom);
+    }
     navigator.geolocation?.getCurrentPosition(
-      (pos) => setPosition([pos.coords.latitude, pos.coords.longitude]),
-      () => {} // fallback: stay at world view
+      (pos) => {
+        const coords: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+        setPosition(coords);
+        saveLastLocation(coords[0], coords[1], 14);
+      },
+      () => {} // keep lastLoc or default
     );
   }, []);
 
@@ -137,6 +158,27 @@ export default function MapView() {
     const handler = () => setZoom(mapRef.getZoom());
     mapRef.on("zoomend", handler);
     return () => { mapRef.off("zoomend", handler); };
+  }, [mapRef]);
+
+  // Save last location on map move (debounced 5s) + beforeunload
+  useEffect(() => {
+    if (!mapRef) return;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const save = () => {
+      const center = mapRef.getCenter();
+      saveLastLocation(center.lat, center.lng, mapRef.getZoom());
+    };
+    const handler = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(save, 5000);
+    };
+    mapRef.on('moveend', handler);
+    window.addEventListener('beforeunload', save);
+    return () => {
+      mapRef.off('moveend', handler);
+      window.removeEventListener('beforeunload', save);
+      if (timer) clearTimeout(timer);
+    };
   }, [mapRef]);
 
   // Get initial bounds once map is ready
@@ -247,6 +289,33 @@ export default function MapView() {
     clearRoute();
   }, [clearRoute]);
 
+  const handleZoomTo = useCallback((lat: number, lng: number) => {
+    if (mapRef) mapRef.flyTo([lat, lng], Math.max(mapRef.getZoom(), 16), { duration: 1.5 });
+  }, [mapRef]);
+
+  const handleToggleCategories = useCallback((show?: string[], hide?: string[]) => {
+    setEnabledCategories((prev) => {
+      const next = new Set(prev);
+      if (show) for (const c of show) next.add(c as POICategory);
+      if (hide) for (const c of hide) next.delete(c as POICategory);
+      return next;
+    });
+  }, []);
+
+  const handleHighlightPOI = useCallback((lat: number, lng: number, _name: string) => {
+    setHighlightedPOI({ lat, lng });
+  }, []);
+
+  const { toast, sendCommand, isProcessing } = useMapChat({
+    pois,
+    effectiveStart,
+    onRouteTo: handleRoute,
+    onZoomTo: handleZoomTo,
+    onToggleCategories: handleToggleCategories,
+    onHighlightPOI: handleHighlightPOI,
+    onDownloadArea: downloadArea,
+  });
+
   // Start location display text
   const startLabel = routeStart
     ? `start: manual ${routeStart[0].toFixed(2)}, ${routeStart[1].toFixed(2)}`
@@ -275,8 +344,8 @@ export default function MapView() {
   return (
     <div className="relative h-full w-full">
       <MapContainer
-        center={position || DEFAULT_CENTER}
-        zoom={position ? 14 : DEFAULT_ZOOM}
+        center={position || initialCenter}
+        zoom={position ? 14 : initialZoom}
         className="h-full w-full"
         zoomControl={true}
         ref={setMapRef}
@@ -292,6 +361,7 @@ export default function MapView() {
           userPosition={effectiveStart}
           onBoundsChange={setMapBounds}
           onRoute={handleRoute}
+          highlightedPOI={highlightedPOI}
         />
         <RouteLayer route={route} />
       </MapContainer>
@@ -329,7 +399,7 @@ export default function MapView() {
       </div>
 
       {/* Control overlay */}
-      <div className="absolute bottom-4 left-4 z-[1000] flex flex-col gap-1 rounded border border-border bg-surface/90 px-3 py-2 font-mono text-[11px]">
+      <div className="absolute bottom-14 left-4 z-[1000] flex flex-col gap-1 rounded border border-border bg-surface/90 px-3 py-2 font-mono text-[11px]">
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={locate}
@@ -396,6 +466,12 @@ export default function MapView() {
           {" | "}roads: {roadRegionCount} areas saved
         </div>
       </div>
+
+      <MapCommandBar
+        onSend={sendCommand}
+        isProcessing={isProcessing}
+        toast={toast}
+      />
     </div>
   );
 }

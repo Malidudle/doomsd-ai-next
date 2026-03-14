@@ -1,17 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #c8c8c8;
-  --green: #33cc33;
-  --green-dim: #1a8a1a;
-  --green-bright: #44ff44;
-  --amber: #ccaa33;
-  --red: #cc3333;
+  --background: #0A0A0A;
+  --foreground: #E0E0E0;
+  --green: #00FF41;
+  --green-dim: #00FF4180;
+  --green-glow: #00FF4130;
+  --green-bright: #00FF41;
+  --amber: #F5A623;
+  --text-amber: #FFAA00;
+  --red: #EF4444;
   --blue: #3388cc;
   --border: #222222;
-  --surface: #111111;
+  --border-green: #00FF4133;
+  --border-green-active: #00FF41;
+  --surface: #141414;
+  --surface-hover: #1A1A1A;
   --muted: #555555;
+  --text-secondary: #888888;
+  --bg-page: #0A0A0A;
+  --bg-card: #141414;
+  --bg-card-hover: #1A1A1A;
 }
 
 @theme inline {
@@ -20,14 +29,21 @@
   --color-green: var(--green);
   --color-green-dim: var(--green-dim);
   --color-green-bright: var(--green-bright);
+  --color-green-glow: var(--green-glow);
   --color-amber: var(--amber);
+  --color-text-amber: var(--text-amber);
   --color-red: var(--red);
   --color-blue: var(--blue);
   --color-border: var(--border);
+  --color-border-green: var(--border-green);
   --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
   --color-muted: var(--muted);
-  --font-sans: var(--font-ibm-plex-mono);
-  --font-mono: var(--font-space-mono);
+  --color-text-secondary: var(--text-secondary);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-hover: var(--bg-card-hover);
+  --font-sans: var(--font-jetbrains-mono);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
 * {
@@ -63,9 +79,9 @@ body {
   z-index: 999;
 }
 
-/* subtle CRT glow */
+/* CRT glow */
 .crt-glow {
-  text-shadow: 0 0 2px rgba(51, 204, 51, 0.15);
+  text-shadow: 0 0 4px rgba(0, 255, 65, 0.3), 0 0 8px rgba(0, 255, 65, 0.1);
 }
 
 /* blinking cursor */
@@ -88,6 +104,16 @@ body {
   animation: fadeIn 0.15s ease-out;
 }
 
+/* breathing circle animation */
+@keyframes breathePulse {
+  0%, 100% { transform: scale(0.85); box-shadow: 0 0 20px rgba(0, 255, 65, 0.2), inset 0 0 20px rgba(0, 255, 65, 0.05); }
+  50% { transform: scale(1); box-shadow: 0 0 40px rgba(0, 255, 65, 0.4), 0 0 80px rgba(0, 255, 65, 0.2), inset 0 0 30px rgba(0, 255, 65, 0.1); }
+}
+
+.breathe-circle {
+  animation: breathePulse 4s ease-in-out infinite;
+}
+
 /* input caret color */
 input, textarea {
   caret-color: var(--green);
@@ -97,4 +123,73 @@ input, textarea {
 hr {
   border: none;
   border-top: 1px dashed var(--border);
+}
+
+/* pulsing location dot */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.7; }
+}
+
+/* Leaflet theme overrides */
+.leaflet-container {
+  background: var(--background);
+  font-family: var(--font-jetbrains-mono), monospace;
+}
+
+.leaflet-control-zoom a {
+  background: var(--surface) !important;
+  color: var(--green) !important;
+  border-color: var(--border) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: var(--border) !important;
+  color: var(--green-bright) !important;
+}
+
+.leaflet-control-attribution {
+  background: var(--surface) !important;
+  color: var(--muted) !important;
+  font-family: var(--font-jetbrains-mono), monospace !important;
+  font-size: 9px !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--muted) !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--surface) !important;
+  color: var(--foreground) !important;
+  border: 1px dashed var(--border) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.2) !important;
+}
+
+.leaflet-popup-tip {
+  background: var(--surface) !important;
+}
+
+/* Marker cluster overrides */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background: transparent !important;
+}
+
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  background: var(--background) !important;
+  color: var(--green) !important;
+  font-family: var(--font-jetbrains-mono), monospace !important;
+  font-size: 11px !important;
+  border: 1px solid var(--green) !important;
+  border-radius: 2px !important;
+}
+
+.leaflet-marker-icon {
+  background: transparent !important;
+  border: none !important;
 }

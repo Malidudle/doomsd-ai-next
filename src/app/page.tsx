@@ -1,205 +1,87 @@
 'use client';
 
-import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
-import { useState, useRef, useEffect, useMemo } from 'react';
+import Link from 'next/link';
+import { useState } from 'react';
 
-const MODELS = [
-  { id: 'qwen3.5:0.8b', label: 'qwen3.5:0.8b', desc: 'fast' },
-  { id: 'qwen3.5:4b', label: 'qwen3.5:4b', desc: 'balanced' },
-  { id: 'qwen3:latest', label: 'qwen3:8b', desc: 'quality' },
-] as const;
+const CRISIS_TYPES = [
+  { id: 'earthquake', label: 'Earthquake', icon: '⫘⫘⫘' },
+  { id: 'flood', label: 'Flood', icon: '≈≈≈' },
+  { id: 'warzone', label: 'War Zone', icon: '⚠!⚠' },
+  { id: 'wilderness', label: 'Wilderness', icon: '▲▲▲' },
+  { id: 'medical', label: 'Medical', icon: '+♥+' },
+  { id: 'custom', label: 'Custom', icon: '···' },
+];
 
-const ASCII_LOGO = `
- ┌─────────────────────────────────┐
- │  ▄▄▄▄  ▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄   │
- │  █  █    █    █   █       █     │
- │  █▄▄█    █    █   █       █     │
- │  █  █  ▄▄█    █   █▄▄▄▄▄▄█     │
- │  █▄▄█  █▄█    █   █▄▄▄▄▄▄█     │
- │                                 │
- │  b i t c h a t    v 0 . 1 . 0  │
- └─────────────────────────────────┘`;
+const ACTION_CARDS = [
+  { label: 'AM I SAFE HERE?', icon: '  ?  ', href: '/chat?q=Am+I+safe+here' },
+  { label: 'FIRST AID', icon: ' +♥+ ', href: '/chat?q=First+aid+guide' },
+  { label: 'FIND WATER', icon: ' ≈▲≈ ', href: '/chat?q=Find+water+nearby' },
+  { label: 'SIGNAL HELP', icon: ' )))  ', href: '/chat?q=How+to+signal+help' },
+  { label: 'BUILD SHELTER', icon: ' /▲\\ ', href: '/chat?q=Build+emergency+shelter' },
+  { label: 'BROADCAST SOS', icon: '[SOS]', href: '/chat?q=Broadcast+SOS+signal' },
+];
 
-function Timestamp({ date }: { date: Date }) {
-  const t = new Date(date);
-  const h = t.getHours().toString().padStart(2, '0');
-  const m = t.getMinutes().toString().padStart(2, '0');
-  const s = t.getSeconds().toString().padStart(2, '0');
-  return (
-    <span className="text-muted select-none shrink-0">
-      [{h}:{m}:{s}]
-    </span>
-  );
-}
-
-export default function Home() {
-  const [input, setInput] = useState('');
-  const [model, setModel] = useState('qwen3.5:4b');
-  const [showModelPicker, setShowModelPicker] = useState(false);
-
-  const transport = useMemo(
-    () => new DefaultChatTransport({ api: '/api/chat', body: { model } }),
-    [model],
-  );
-
-  const { messages, sendMessage, status } = useChat({ transport });
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
-
-  const isStreaming = status !== 'ready';
-  const modelNick = model.split(':')[0];
+export default function SOSDashboard() {
+  const [activeCrisis, setActiveCrisis] = useState('earthquake');
 
   return (
-    <div className="scanlines flex min-h-screen flex-col bg-background text-foreground">
+    <div className="flex flex-col h-full p-4 md:p-6 crt-glow">
       {/* Header */}
-      <header className="border-b border-border px-4 py-2">
-        <pre className="text-green text-[10px] leading-tight crt-glow select-none hidden sm:block">
-          {ASCII_LOGO}
-        </pre>
-        <div className="sm:hidden text-green font-bold crt-glow">
-          bitchat v0.1.0
-        </div>
-        <div className="flex items-center gap-4 mt-1 text-[11px] text-muted">
-          <span>
-            <span className="text-green">●</span> connected
-          </span>
-          <span>channel: <span className="text-amber">#general</span></span>
-          <span className="relative">
-            model:{' '}
-            <button
-              onClick={() => setShowModelPicker((p) => !p)}
-              className="text-blue hover:text-green-bright transition-colors"
-            >
-              {model} ▾
-            </button>
-            {showModelPicker && (
-              <div className="absolute top-5 left-0 z-50 border border-border bg-surface py-1 min-w-[200px]">
-                {MODELS.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => {
-                      setModel(m.id);
-                      setShowModelPicker(false);
-                    }}
-                    className={`block w-full text-left px-3 py-1 hover:bg-green/10 transition-colors ${
-                      m.id === model ? 'text-green' : 'text-foreground'
-                    }`}
-                  >
-                    {m.label}{' '}
-                    <span className="text-muted">({m.desc})</span>
-                    {m.id === model && (
-                      <span className="text-green ml-1">*</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </span>
-        </div>
-        <hr className="mt-2" />
-      </header>
-
-      {/* Messages */}
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto px-4 py-3 crt-glow"
-      >
-        {/* System join message */}
-        <div className="text-muted text-[12px] mb-3">
-          <span className="text-green-dim">***</span>{' '}
-          you have joined <span className="text-amber">#general</span>{' '}
-          — type a message below to begin
-        </div>
-
-        <hr className="mb-3" />
-
-        {messages.length === 0 && (
-          <div className="text-muted text-[12px] italic">
-            &lt;no messages yet&gt;
-          </div>
-        )}
-
-        {messages.map((message) => {
-          const isUser = message.role === 'user';
-          const nick = isUser ? 'you' : modelNick;
-          const nickColor = isUser ? 'text-amber' : 'text-green';
-
-          return (
-            <div key={message.id} className="msg-enter flex gap-2 mb-1 leading-relaxed">
-              <Timestamp date={new Date()} />
-              <span className="select-none shrink-0">
-                &lt;<span className={`font-bold ${nickColor}`}>{nick}</span>&gt;
-              </span>
-              <span className={isUser ? 'text-foreground' : 'text-foreground/90'}>
-                {message.parts.map((part, i) =>
-                  part.type === 'text' ? (
-                    <span key={i} className="whitespace-pre-wrap break-words">{part.text}</span>
-                  ) : null,
-                )}
-              </span>
-            </div>
-          );
-        })}
-
-        {isStreaming && (
-          <div className="flex items-center gap-2 mt-1 text-muted text-[12px]">
-            <span className="text-green-dim">***</span>{' '}
-            {modelNick} is typing<span className="cursor-blink">_</span>
-          </div>
-        )}
+      <div className="mb-6">
+        <h1 className="text-green text-lg font-bold tracking-wider">SOS DASHBOARD</h1>
+        <p className="text-muted text-[11px] mt-1">&gt; Select crisis type and choose an action</p>
       </div>
 
-      {/* Input bar */}
-      <div className="border-t border-border bg-surface px-4 py-3">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (input.trim()) {
-              sendMessage({ text: input });
-              setInput('');
-            }
-          }}
-          className="flex items-center gap-2 max-w-full"
-        >
-          <span className="text-green select-none shrink-0 font-bold">&gt;</span>
-          <input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={isStreaming}
-            placeholder="/msg ..."
-            className="flex-1 bg-transparent text-foreground placeholder:text-muted/50 outline-none disabled:opacity-40"
-          />
-          <button
-            type="submit"
-            disabled={isStreaming || !input.trim()}
-            className="text-[11px] border border-border px-3 py-1 text-green hover:bg-green/10 hover:border-green-dim transition-colors disabled:opacity-30 disabled:hover:bg-transparent select-none"
-          >
-            SEND
-          </button>
-        </form>
-        <div className="flex items-center gap-4 mt-2 text-[10px] text-muted select-none">
-          <span>ESC clear</span>
-          <span>ENTER send</span>
-          <span className="ml-auto">
-            {isStreaming ? (
-              <span className="text-amber">streaming...</span>
-            ) : (
-              <span className="text-green-dim">ready</span>
-            )}
-          </span>
+      {/* Crisis Selector */}
+      <div className="mb-6">
+        <h2 className="text-[10px] text-muted tracking-wider mb-3">CRISIS TYPE</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+          {CRISIS_TYPES.map((crisis) => {
+            const active = activeCrisis === crisis.id;
+            return (
+              <button
+                key={crisis.id}
+                onClick={() => setActiveCrisis(crisis.id)}
+                className={`border px-3 py-3 text-center transition-all ${
+                  active
+                    ? 'border-green text-green bg-green/5 shadow-[0_0_12px_rgba(0,255,65,0.15)]'
+                    : 'border-border text-muted hover:border-border-green hover:text-text-secondary'
+                }`}
+              >
+                <div className="text-sm font-bold mb-1 font-mono">{crisis.icon}</div>
+                <div className="text-[10px] tracking-wider">{crisis.label}</div>
+              </button>
+            );
+          })}
         </div>
+      </div>
+
+      {/* Action Cards Grid */}
+      <div className="flex-1">
+        <h2 className="text-[10px] text-muted tracking-wider mb-3">QUICK ACTIONS</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {ACTION_CARDS.map((card) => (
+            <Link
+              key={card.label}
+              href={card.href}
+              className="border border-border-green bg-bg-card hover:bg-bg-card-hover hover:border-green transition-all p-4 md:p-6 flex flex-col items-center justify-center gap-3 group"
+            >
+              <pre className="text-green text-lg md:text-xl font-bold group-hover:drop-shadow-[0_0_8px_rgba(0,255,65,0.4)] transition-all">
+                {card.icon}
+              </pre>
+              <span className="text-[10px] md:text-[11px] text-foreground tracking-wider text-center">
+                {card.label}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Status bar */}
+      <div className="mt-6 pt-3 border-t border-border flex items-center gap-4 text-[10px] text-muted">
+        <span>MODE: <span className="text-green">{activeCrisis.toUpperCase()}</span></span>
+        <span>STATUS: <span className="text-green">ACTIVE</span></span>
+        <span className="ml-auto">DoomsAI v0.1.0</span>
       </div>
     </div>
   );

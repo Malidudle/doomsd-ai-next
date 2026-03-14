@@ -1,0 +1,118 @@
+<h2>Map Command Bar Layout</h2>
+<p class="subtitle">How the AI command bar sits on the map page</p>
+
+<div class="cards">
+  <div class="card" data-choice="layout" style="max-width: 700px; margin: 0 auto;">
+    <div class="card-image" style="padding: 0;">
+      <!-- Map mockup -->
+      <div style="
+        background: #0a0a0a;
+        height: 420px;
+        position: relative;
+        overflow: hidden;
+        font-family: monospace;
+        font-size: 11px;
+      ">
+        <!-- Fake map background -->
+        <div style="
+          position: absolute; inset: 0;
+          background: linear-gradient(135deg, #0d1117 0%, #111 50%, #0d1117 100%);
+          opacity: 0.8;
+        "></div>
+
+        <!-- Category filter panel (top-right) -->
+        <div style="
+          position: absolute; top: 12px; right: 12px;
+          background: rgba(17,17,17,0.9);
+          border: 1px solid #222;
+          padding: 8px;
+          border-radius: 4px;
+          z-index: 2;
+        ">
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;">
+            <span style="color: #cc3333; border: 1px solid #cc3333; padding: 1px 4px; font-size: 9px;">╋ HOSP</span>
+            <span style="color: #3388cc; border: 1px solid #3388cc; padding: 1px 4px; font-size: 9px;">★ POLICE</span>
+            <span style="color: #ccaa33; border: 1px solid #ccaa33; padding: 1px 4px; font-size: 9px;">▲ FIRE</span>
+          </div>
+        </div>
+
+        <!-- Existing control overlay (bottom-left) -->
+        <div style="
+          position: absolute; bottom: 52px; left: 12px;
+          background: rgba(17,17,17,0.9);
+          border: 1px solid #222;
+          padding: 8px 12px;
+          border-radius: 4px;
+          z-index: 2;
+        ">
+          <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+            <span style="color: #33cc33; border: 1px solid #222; padding: 2px 6px;">LOCATE</span>
+            <span style="color: #ccaa33; border: 1px solid #222; padding: 2px 6px;">SET START</span>
+            <span style="color: #ccaa33; border: 1px solid #222; padding: 2px 6px;">DOWNLOAD AREA</span>
+          </div>
+          <div style="color: #555; font-size: 10px;">
+            pos: 55.68°N, 12.57°E | zoom: 14 | tiles: 423
+          </div>
+        </div>
+
+        <!-- AI Response toast (appears briefly above command bar) -->
+        <div style="
+          position: absolute; bottom: 52px; left: 50%; transform: translateX(-50%);
+          background: rgba(17,17,17,0.95);
+          border: 1px solid #33cc33;
+          padding: 6px 14px;
+          border-radius: 4px;
+          z-index: 3;
+          max-width: 400px;
+          box-shadow: 0 0 12px rgba(51,204,51,0.15);
+        ">
+          <div style="color: #33cc33; font-size: 10px; margin-bottom: 2px;">▶ AI</div>
+          <div style="color: #c8c8c8; font-size: 11px;">Routing to St Mary's Hospital, 1.3km NE</div>
+        </div>
+
+        <!-- COMMAND BAR — full width at bottom -->
+        <div style="
+          position: absolute; bottom: 0; left: 0; right: 0;
+          background: rgba(10,10,10,0.95);
+          border-top: 1px solid #33cc33;
+          padding: 8px 12px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          z-index: 4;
+        ">
+          <span style="color: #33cc33;">▶</span>
+          <span style="color: #c8c8c8; flex: 1;">take me to the nearest hospital</span>
+          <span style="
+            color: #33cc33;
+            border: 1px solid #33cc33;
+            padding: 2px 8px;
+            font-size: 10px;
+          ">SEND</span>
+        </div>
+
+        <!-- Some fake POI markers -->
+        <div style="position: absolute; top: 140px; left: 200px; color: #cc3333; font-size: 16px; z-index: 1;">╋</div>
+        <div style="position: absolute; top: 200px; left: 350px; color: #3388cc; font-size: 16px; z-index: 1;">★</div>
+        <div style="position: absolute; top: 100px; left: 400px; color: #ccaa33; font-size: 16px; z-index: 1;">▲</div>
+        <div style="position: absolute; top: 250px; left: 280px; z-index: 1;">
+          <div style="width:14px;height:14px;border-radius:50%;background:#33cc33;box-shadow:0 0 8px #33cc33;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Command Bar + Toast Response</h3>
+      <p>Full-width input bar pinned to bottom. AI responses appear as a brief toast overlay that auto-fades after 5s. Existing controls shift up slightly. Minimal screen real estate used.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="max-width: 700px; margin: 24px auto 0;">
+  <h3>Key Elements</h3>
+  <ul style="color: #aaa; line-height: 1.8;">
+    <li><strong style="color: #33cc33;">Command bar</strong> — always visible at bottom, green border-top, terminal prompt feel</li>
+    <li><strong style="color: #33cc33;">Toast response</strong> — appears above command bar on AI reply, fades after 5s. Shows AI text + action taken.</li>
+    <li><strong style="color: #ccc;">Existing controls</strong> — shift up by ~44px to sit above the command bar</li>
+    <li><strong style="color: #ccc;">No chat history</strong> — command bar is fire-and-forget. Previous commands don't persist on screen.</li>
+  </ul>
+</div>

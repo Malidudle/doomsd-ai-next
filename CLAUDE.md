@@ -14,12 +14,15 @@ npx playwright test tests/map.spec.ts  # Run a single test file
 
 ## Architecture
 
-**bitchat** is an offline-capable emergency preparedness app built with Next.js 16 (App Router) + TypeScript. It combines a terminal-themed AI chat interface with an interactive survival map.
+**DoomsdAI** is an offline-capable emergency preparedness app built with Next.js 16 (App Router) + TypeScript. It combines a terminal-themed AI chat interface with an interactive survival map and a Bluetooth mesh panel. Storage keys keep the earlier working name `bitchat`.
 
-### Two main routes
+### Routes
 
-- `/` — Chat page. Terminal-style UI that streams responses from a local Ollama LLM (Qwen models). Automatically fetches user geolocation and nearby POIs to inject as location context into the AI system prompt.
-- `/map` — Offline-capable Leaflet map. Displays POIs (hospitals, shelters, water, fuel, etc.), supports A* routing on cached road graphs, and downloads map tiles for offline use.
+- `/` — SOS dashboard. Crisis type selector and quick actions that open `/survive` with a prepared question.
+- `/survive` — Chat page. Streams responses from a local Ollama LLM (Qwen models). The sources panel shows mock data.
+- `/map` — Offline-capable Leaflet map. Displays POIs (hospitals, shelters, water, fuel, etc.), supports A* routing on cached road graphs, and downloads map tiles for offline use. A command bar lets the model drive the map with tool calls (`src/app/api/map-chat/route.ts`, `src/hooks/useMapChat.ts`).
+- `/mesh` — Bluetooth mesh chat. `src/app/api/mesh/[...path]/route.ts` proxies to an external BitChat bridge (`MESH_UPSTREAM`, default `http://127.0.0.1:8787`).
+- `/breathe` — Full-screen breathing exercise.
 
 ### AI chat (`src/app/api/chat/route.ts`)
 
@@ -43,7 +46,7 @@ Three-layer offline system, all client-side:
 
 ### Styling
 
-CRT terminal aesthetic via CSS custom properties in `globals.css`. Green-on-black theme with scanline effects. Tailwind v4. Fonts: IBM Plex Mono + Space Mono.
+CRT terminal aesthetic via CSS custom properties in `globals.css`. Green-on-black theme with scanline effects. Tailwind v4. Font: JetBrains Mono.
 
 ### Path alias
 

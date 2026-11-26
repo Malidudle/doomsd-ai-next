@@ -72,3 +72,7 @@ safety decisions.
 
 Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, Vercel AI SDK
 with `ollama-ai-provider-v2`, Leaflet, IndexedDB via `idb`, Playwright.
+
+## Licence
+
+MIT. See `LICENSE`.
